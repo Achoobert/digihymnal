@@ -41,10 +41,10 @@ Template7.registerHelper('getKeyInParent', function(parent, keyArr) {
 // make a slider div for each language
 // (parentObject)
 Template7.registerHelper('printLyric', function(line) {
-    var results = '<br/><br/><br/><br/>'
+    var results = '<br><br/><br /><br  />'
     for (const key in line.phrases[0]) {
       if (key != "chord" && key != "number") { 
-        results = results.concat(`<div  href="#" class="button button-small item-link edit-phrase" style="padding: 5px" @click="linePanel(${key})">edit ${key}</div><div id="sliderContainer${key}" style="padding: 55px"><div id="slider-${key}" class="slider-${key}"></div></div>`)
+        results = results.concat(`<div  href="#" class="button button-small item-link edit-phrase" style="padding: 5px" @click="lineEditPopup('${key}')">edit ${key}</div><div id="sliderContainer${key}" style="padding: 55px"><div id="slider-${key}" class="slider-${key}"></div></div>`)
       }
     }
     return results;
@@ -54,41 +54,31 @@ Template7.registerHelper('printLyric', function(line) {
 Template7.registerHelper('printEachPhrase', function(line, languages) {
     console.log(line, languages)
     if (line === undefined) {
-        // debugger;
         console.error('undefined line')
         return "";
     }
     var results = ''
-    const validateChords = `required pattern='[ABCDEFG]|[ABCDEFG]m|[ABCDEFG]#|[ABCDEFG]b|[ABCDEFG]#m|[ABCDEFG]bm|[ABCDEFG]7|[ABCDEFG]sus|[ABCDEFG]#7|[ABCDEFG]#sus|[ABCDEFG]b7|[ABCDEFG]bsus'`
-    const validateNumber = `required pattern='1|2|3|4|5|6|7|8|9|10|11|12'`
+    const validateChords = `required pattern='[ABCDEFG]|[ABCDEFG]m|[ABCDEFG]#|[ABCDEFG]b|[ABCDEFG]#m|[ABCDEFG]bm|[ABCDEFG]m7|[ABCDEFG]7|[ABCDEFG]sus|[ABCDEFG]#7|[ABCDEFG]#sus|[ABCDEFG]b7|[ABCDEFG]bsus'`
+    const validateNumber = `required pattern='1|2|3|4|5|6|7|8|9|10|11|12||'`
     //
     results = results.concat(`<div class="line metadata">`)
-    //if(line.phrases[0]["chord"]){
-        line.phrases.forEach(phrase => {
-            results = results.concat(`<div class="phrase metadata"> `)
-            if (phrase["chord"]) {
-                results = results.concat(`<div class="chord"><div class="item-input-wrap"><input type="text" ${validateChords} value="${phrase["chord"]}"></div></div>`)
-            } else {
-                results = results.concat(`<div class="chord"><div class="item-input-wrap"><input type="text" ${validateChords} placeholder="*"></div></div>`)
-            }
-            if (phrase["number"]) {
-                results = results.concat(`<div class="number"><div class="item-input-wrap"><input type="text" ${validateNumber}value="${phrase["number"]}"></div></div>`)
-            } else {
-                results = results.concat(`<div class="number"><div class="item-input-wrap"><input type="text" ${validateNumber}placeholder="*"></div></div>`)
+    line.phrases.forEach((phrase, index) => {
+        results = results.concat(`<div class="phrase metadata phraseMetadata"> `)
+        if(phrase["chord"]) {
+                if (phrase["chord"]) {
+                    results = results.concat(`<div class="chord ${index}"><div class="item-input-wrap"><input class="chord${index}" type="text" ${validateChords} value="${phrase["chord"]}"></div></div>`)
+                } else {
+                    results = results.concat(`<div class="chord ${index}"><div class="item-input-wrap"><input class="chord${index}" type="text" ${validateChords} placeholder="*"></div></div>`)
+                }
+                if (phrase["number"]) {
+                    results = results.concat(`<div class="number ${index}"><div class="item-input-wrap"><input class="number${index}" type="text" ${validateNumber}value="${phrase["number"]}"></div></div>`)
+                } else {
+                    results = results.concat(`<div class="number ${index}"><div class="item-input-wrap"><input class="number${index}" type="text" ${validateNumber}placeholder="*"></div></div>`)
+                }
             }
             results = results.concat('</div>');
         });
-    // } else { // make an empty metadata
-    //     results = results.concat(`<div class="phrase metadata"> `) // line
-    //     line.phrases.forEach(phrase => {
-    //         results = results.concat(
-    //             `<div class="chord"><div class="item-input-wrap"><input type="text" placeholder="A"></div></div>
-    //              <div class="number"><div class="item-input-wrap"><input type="text" placeholder="1"></div></div>`
-    //             );
-    //         });
-    //     results = results.concat('</div>');
-    // }
-
+     
     results = results.concat('</div>');
 
     return results;
@@ -117,7 +107,16 @@ Template7.registerHelper('printEachLanguage', function(dataArray, languages, nam
 // print all languages for passed div
 // (parentObject)
 Template7.registerHelper('printObjectPropertyByKey', function(dataObject, language) {
-    return dataObject[language];
+    if(dataObject && language && dataObject[language]){
+        // check if there's supposed to be a space
+        let lastIndex = (dataObject[language].length-1);
+        let c = dataObject[language][lastIndex]; // last character
+        if ((c <= 32 && c >= 0) || c == 127){
+            return (dataObject[language].concat( `&nbsp;` ));
+        }
+        return dataObject[language];
+    } 
+    return ""
 })
 
 var app = new Framework7({
