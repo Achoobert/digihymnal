@@ -376,6 +376,7 @@
                 });
                 app.song = newData;
                 languages.push(newLanguageTag);
+                self.savableUpdate(true);
 
                 self.$setState({
                     loading: false,
@@ -459,6 +460,7 @@
                             text: "<t>Upload - overwrite</t>",
                             onClick: (dialog, ev) => {
                                 self.handleFiles(self.$$("#file")[0].files[0] , languageTag, totalLines);
+                                self.savableUpdate(true);
                                 dialog.close();
                             }
                         },
@@ -466,6 +468,7 @@
                             text: "<t>Upload - add on</t>",
                             onClick: (dialog, ev) => {
                                 self.handleFilesAddon(self.$$("#file")[0].files[0] , languageTag, totalLines);
+                                self.savableUpdate(true);
                                 dialog.close();
                             }
                         }
@@ -490,7 +493,7 @@
                                 phrase[tag] = ''
                             });
                             // add upload
-                            let newLine = linesForExistingSlots.splice(0,1);
+                            let newLine = linesForExistingSlots.splice(0,1)[0];
                             console.log(newLine);
                             line.phrases[0][tag] = newLine;
                         });
@@ -509,9 +512,11 @@
                         }
 
                         allLines.forEach(newLine => {
-                            templatePhrase[tag] = newLine;
-                            //song.lyrics.verses[lastVerseId].lines[++lastLineId] = {'phrases':[{tag: newLine}]};
-                            song.lyrics.verses[lastVerseId].lines[++lastLineId] = {'phrases':[templatePhrase]};
+                            // The same line gets inserted over and over if I DON'T do this
+                            let a = {'phrases':[]};
+                            a.phrases.push({})
+                            a.phrases[0][tag] = newLine
+                            song.lyrics.verses[lastVerseId].lines[++lastLineId] = a;
                         });
                     }
                 };
@@ -533,6 +538,7 @@
                     var lastLineId = song.lyrics.verses[lastVerseId].lines.length-1;
 
                     allLines.forEach(newLine => {
+                        // The same line gets inserted over and over if I DON'T do this
                         let a = {'phrases':[]};
                         a.phrases.push({})
                         a.phrases[0][tag] = newLine
@@ -545,6 +551,15 @@
                 };
                 
                 reader.readAsText(file);
+            },
+            savableUpdate: function(bool) {
+                if (typeof(bool) != 'boolean'){
+                    bool = false;
+                }
+                app.savable = bool;
+                self.$setState({
+                    savable: bool
+                });
             },
         },
     }
