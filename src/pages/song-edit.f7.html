@@ -14,7 +14,7 @@
                     <!-- <a @click="downloadSong" class="button">
                         <span class="fa-stack">
                             <i class="fas fa-square fa-stack-2x" style="color:orange"></i>
-                            <!-- <i class="fas fa-down fa-stack-1x" style="color:blue"></i> -->
+                            <i class="fas fa-down fa-stack-1x" style="color:blue"></i> 
                             <i class="fas fa-file fa-stack-1x"
                                 style="color:green; text-align:left;  margin-top: 9px; margin-left: 5px;"></i>
                         </span>
@@ -26,8 +26,6 @@
                             <i class="fas fa-plus fa-stack-1x"
                                 style="color:red; text-align:left;  margin-top: 9px; margin-left: 5px;"></i>
                         </span>
-                    </a>
-
                     </a>
                     <a @click="pickCodeToAdd" class="button">
                         <span class="fa-stack">
@@ -339,8 +337,8 @@
             pickLanguageCode: function () {
                 //make popup: list of all languages minus langagues already in song
                 var el = `<div class="popup">
-                        <div class="block">
-                            <strong><h3>*Pick language to add</h3></strong>`
+                    <div class="block">
+                        <strong><h3>*Pick language to add</h3></strong>`
                 locale.customLocales.forEach(element => {
                     if (!languages.includes(element['tag'])) {
                         el += `<a  href="#" id="${element.tag}" class="col popup-close button button-fill ${element.tag}">${element.name} - ${element.local}</a></p>`
@@ -419,16 +417,16 @@
                 });
 
                 var el = `<div class="popup">
-                        <div class="block">
-                            <strong><h3>*Total Lines: ${totalLines}</h3></strong>
-                            <input type="file" id="file-selector" accept=".txt, .doc, .docx">
-                        </div></div>`
+                    <div class="block">
+                        <strong><h3>*Total Lines: ${totalLines}</h3></strong>
+                        <input type="file" id="file-selector" accept=".txt, .doc, .docx">
+                    </div></div>`
 
                 var dialog = app.dialog.create({
                     backdrop: true,
                     closeByBackdropClick: false,
                     title: `<t>Upload File or paste text
-                    Current total lines: ${totalLines}</t>`,
+                Current total lines: ${totalLines}</t>`,
                     text: "<input type='file' id='file' accept='.txt, .doc, .docx'> </br><textarea id='textarea' cols='29' rows='5'></textarea>",
                     buttons: [{
                         text: "<t>Cancel</t>",
@@ -605,8 +603,8 @@
             pickCodeToAdd: function () {
                 //make popup: list of all languages minus langagues already in song
                 var el = `<div class="popup">
-                        <div class="block">
-                            <strong><h3>*Pick language to bulk edit lyrics</h3></strong>`
+                    <div class="block">
+                        <strong><h3>*Pick language to bulk edit lyrics</h3></strong>`
                 locale.customLocales.forEach(element => {
                     if (languages.includes(element['tag'])) {
                         el += `<a  href="#" id="${element.tag}" class="col popup-close button button-fill ${element.tag}">${element.name} - ${element.local}</a></p>`
@@ -653,16 +651,16 @@
                 });
 
                 var el = `<div class="popup">
-                        <div class="block">
-                            <strong><h3>*Upload File with ${totalLines} total lines.</h3></strong>
-                            <input type="file" id="file-selector" accept=".txt, .doc, .docx">
-                        </div></div>`
+                    <div class="block">
+                        <strong><h3>*Upload File with ${totalLines} total lines.</h3></strong>
+                        <input type="file" id="file-selector" accept=".txt, .doc, .docx">
+                    </div></div>`
 
                 var dialog = app.dialog.create({
                     backdrop: true,
                     closeByBackdropClick: false,
                     title: `<t>Upload File or paste text
-                    Current total lines: ${totalLines}</t>`,
+                Current total lines: ${totalLines}</t>`,
                     text: "<input type='file' id='file' accept='.txt, .doc, .docx'> </br><textarea id='textarea' cols='29' rows='5'></textarea>",
                     buttons: [{
                         text: "<t>Cancel</t>",

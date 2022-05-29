@@ -199,12 +199,17 @@ Template7.registerHelper('printLine', function(dataObjectLine, language1, showCh
     var finalLineHtml = ''
     function getAllIndexes(arr, val) {
         var indexes = [], i;
-        for(i = 0; i < arr.length; i++)
-            if (arr[i] === val)
-                indexes.push(i);
+        if(arr?.length){
+            for(i = 0; i < arr.length; i++)
+                if (arr[i] === val)
+                    indexes.push(i);
+        }
         return indexes;
     }
     function forceSpace(lyricString){
+        if(lyricString=== undefined || lyricString == null){
+            return "";
+        }
         let lastIndex = (lyricString.length-1);
         let c = lyricString[lastIndex]; // last character
         if ((c <= 32 && c >= 0) || c == 127){
