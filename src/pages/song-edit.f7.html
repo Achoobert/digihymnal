@@ -524,7 +524,7 @@
                     reader.onload = (event) => {
                         const file = event.target.result;
                         const allLines = splitChords(file);
-                        processLines(allLines);
+                        processLinesOverwrite(allLines);
                     };
 
                     reader.onerror = (event) => {
@@ -534,24 +534,176 @@
                     reader.readAsText(file);
                 } else if (userText) {
                     const allLines = splitChords(userText)
-                    processLines(allLines);
+                    processLinesOverwrite(allLines);
+                }
+                function countThis(string) {
+                    // count total length
+                    // let charCount = (string.length ? string.length - 1 : 1);
+                    let charCount = (string.length - 1);
+                    let tabCount = (string.split("\t").length - 1);
+                    return charCount + (tabCount * 2);
+                }
+                function calcSpaces(string) {
+                    //A		    E/D D   Esus E		   A		A2
+                    let fullLength = countThis(string)
+
+                    let ChordChars = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
+                    let specialRegex = new RegExp('[' + ChordChars.join('') + ']');
+                    let splitStr = string.split(specialRegex);
+                    // 
+                    splitStr.forEach((phrase, index) => {
+                        splitStr[index] = countThis(splitStr[index])
+                    });
+                    let spaceCount = (string.split(" ").length - 1);
+                    let tabCount = (string.split("\t").length - 1);
+                    // console.log(splitStr, fullLength)
+                    splitStr.pop();
+                    return splitStr;
                 }
                 function splitChords(text) {
                     //G   D   A
-                    //G   C   Bm
+                    //   G   C   Bm
+                    let layoutMap = [];
+                    let fullLenMap = [];
                     text = text.replaceAll(/^\s*\n/gm, ""); // TODO we we actually want to strip all blank lines?
                     var textArray = text.split(/\r\n|\n/);
                     textArray.forEach((line, index) => {
+                        // get full length of chordline
+                        fullLenMap.push(countThis(line))
+                        // count spaces
+                        layoutMap.push(calcSpaces(line))
                         // remove all spaces " "
                         textArray[index] = line.split(/[\s,]+/)
                     });
                     // [['A','E'],['G','Bm']]
-                    return textArray;
+                    // [0,3,3]
+                    // console.log(layoutMap[0], textArray[0])
+                    // console.log(rebuild(textArray[0], layoutMap[0]))
+                    return { text: textArray, map: layoutMap, fullLength: fullLenMap };
                 }
+                // splitChords("A		    E/D D   Esus E		   A		A2")
+                //  A         E/D D Esus  E   A        A2  // t*2
+                //  A           E/DDEsus  E   A          A2   // t*3
+                //  A          E/D D Esus   E    A         A2 // min1, t*2
 
-                function processLines(allLines) {
+                // function rebuild(arr1, arr2) {
+                //     let reArr = ''
+                //     if (arr2[0] === 0 || arr2[0] === -1) { //not 0 or -1
+                //         arr2.shift()
+                //     }
+                //     arr1.forEach((element, index) => {
+                //         reArr += element
+                //         let toInsert = arr2[index]
+                //         for (let index = 0; index < toInsert; toInsert--) {
+                //             reArr += " ";
+                //         }
+                //         console.log(reArr, arr2[index])
+                //     });
+                //     return reArr
+                // }
 
-                    var linesForExistingSlots = allLines.splice(0, totalLines);
+                function processLinesOverwrite(allLines) {
+                    debugger
+                    var text = allLines.text
+                    let map = allLines.map
+                    let fullLength = allLines.fullLength
+
+                    // var linesForExistingSlots = text.splice(0, totalLines);
+
+                    song.lyrics.verses.forEach((verse, vIndex) => {
+                        verse.lines.forEach((line, lIndex) => {
+                            let phraseChords = allLines.text[lIndex]
+                            let phraseMap = allLines.map[lIndex]
+                            if (phraseChords && phraseMap) {
+                                let leadingSpace;
+                                if (phraseMap && phraseMap[0] === 0 || phraseMap[0] === -1) { //not 0 or -1
+                                    phraseMap.shift()
+                                } else { // first line has leading spaces
+                                    leadingSpace = true
+                                    if (phraseChords[0] == '') phraseChords.shift()
+                                    // if exists, remove chord from first line
+                                    if (line.phrases[0]) {
+                                        delete line.phrases[0]["chord"];
+                                    }
+                                }
+
+                                phraseChords.forEach((chord, index) => {
+                                    if (leadingSpace) {
+                                        ++index; // we need to advance which line gets inserted to
+                                    }
+
+                                    if (line.phrases[index]) {
+                                        line.phrases[index]["chord"] = chord
+                                    } else { //
+                                        line.phrases.push({ chord: chord })
+                                    }
+                                });
+
+                                var lyric = {};
+                                let chordStartLocations = phraseMap; //  {'en':[1,5,12]}
+                                var chordList = phraseMap;           // tooltips: [ {to: function() {return "2<br/>A";} } ]
+
+                                line.phrases.forEach(phrase => {
+                                    for (const key in phrase) {
+                                        if (Object.hasOwnProperty.call(phrase, key) && key != 'chord' && key != 'number') {
+                                            const element = phrase[key];
+                                            if (lyric[key]) {
+                                                lyric[key] = lyric[key].concat(element);
+                                            } else {
+                                                lyric[key] = element;
+                                            }
+                                        }
+                                    }
+                                });
+                                for (const tag in lyric) {
+                                    if (Object.hasOwnProperty.call(lyric, tag)) {
+                                        if (typeof (lyric[tag])) {
+                                            let langArray = lyric[tag]
+                                            if (typeof (langArray) == "string") {
+                                                langArray = langArray.split('');
+                                            } else if (typeof (langArray) == "array" && langArray.length == 1) {
+                                                langArray = lyric[tag][0].split('');
+                                            }
+                                            phraseMap.forEach((suggestedLen, index) => {
+                                                let howMany = langArray.length ? suggestedLen : 0;
+                                                if (phraseMap.length - 1 === index) howMany = langArray.length // if we're on last chord, just include the remaining text
+                                                line.phrases[index][tag] = langArray.splice(0, howMany).join('');
+                                            });
+                                        }
+                                    }
+                                };
+                            };
+                        });
+                    });
+
+                    if (text.length) { // overflow goes into last verse
+                        var lastVerseId = song.lyrics.verses.length - 1;
+                        var lastLineId = song.lyrics.verses[lastVerseId].lines.length - 1;
+
+                        var templatePhrase = {};
+                        for (const key in song.lyrics.verses[lastVerseId].lines[lastLineId].phrases[0]) {
+                            if (Object.hasOwnProperty.call(song.lyrics.verses[lastVerseId].lines[lastLineId].phrases[0], key)) {
+                                if (key != 'chord' && key != 'number') {
+                                    templatePhrase[key] = '';
+                                }
+                            }
+                        }
+
+                        text.forEach(newLine => {
+                            // The same line gets inserted over and over if I DON'T do this
+                            let a = { 'phrases': [] };
+                            a.phrases.push({})
+                            a.phrases[0]['Chord'] = newLine
+                            song.lyrics.verses[lastVerseId].lines[++lastLineId] = a;
+                        });
+                    }
+                    return song;
+                }
+                function processLinesPreserveSpacing(allLines) {
+                    let text = allLines.text
+                    let map = allLines.map
+
+                    var linesForExistingSlots = text.splice(0, totalLines);
 
                     song.lyrics.verses.forEach((verse, vIndex) => {
                         verse.lines.forEach((line, lIndex) => {
@@ -575,7 +727,7 @@
                     return song;
 
 
-                    if (allLines.length) { // overflow goes into last verse
+                    if (text.length) { // overflow goes into last verse
                         var lastVerseId = song.lyrics.verses.length - 1;
                         var lastLineId = song.lyrics.verses[lastVerseId].lines.length - 1;
 
@@ -588,7 +740,7 @@
                             }
                         }
 
-                        allLines.forEach(newLine => {
+                        text.forEach(newLine => {
                             // The same line gets inserted over and over if I DON'T do this
                             let a = { 'phrases': [] };
                             a.phrases.push({})
